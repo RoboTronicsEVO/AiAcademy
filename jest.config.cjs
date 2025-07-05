@@ -3,4 +3,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+  },
 };
