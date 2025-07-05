@@ -1,18 +1,12 @@
 import Stripe from 'stripe';
+import { withAuth } from '@/lib/middleware/auth';
+import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10',
 });
 
-const getMockUserSession = async () => {
-    return {
-        user: {
-            id: '1'
-        }
-    };
-};
-
-export default async function handler(req, res) {
+async function handler(req, res) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
         return res.status(405).end('Method Not Allowed');
@@ -20,13 +14,12 @@ export default async function handler(req, res) {
 
     try {
         const { priceId, communityId } = req.body;
-        const session = await getMockUserSession();
 
-        if (!session || !session.user) {
+        if (!req.session || !req.session.user) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const userId = session.user.id;
+        const userId = req.session.user.id;
 
         if (!priceId || !communityId) {
             return res.status(400).json({ error: 'Price ID and Community ID are required.' });
@@ -59,3 +52,5 @@ export default async function handler(req, res) {
         res.status(500).json({ error: `Stripe Error: ${error.message}` });
     }
 }
+
+export default withRedisRateLimit(withAuth(handler));

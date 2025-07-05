@@ -1,24 +1,35 @@
-const http = require('http');
-const supertest = require('supertest');
-const handler = require('../pages/api/communities/index.js').default || require('../pages/api/communities/index.js');
+/* eslint-disable */
+const { buildRequest, setupCommonMocks } = require('../test/helpers.js');
 
-jest.mock('@/lib/mongodb', () => ({ connectToDatabase: jest.fn().mockResolvedValue(true) }));
-
-jest.mock('@/models/community.model', () => ({
-  find: jest.fn().mockResolvedValue([]),
-}));
-
-jest.mock('@/lib/middleware/auth', () => ({ withAuth: h => h }));
-jest.mock('@/lib/middleware/rateLimitRedis', () => ({ withRedisRateLimit: h => h }));
-
-const server = http.createServer((req, res) => handler(req, res));
+setupCommonMocks();
 
 describe('Communities API', () => {
-  it('GET returns 200 with data', async () => {
-    await supertest(server).get('/api/communities').expect(200);
+  let request;
+  beforeAll(async () => {
+    jest.mock('@/models/community.model', () => ({
+      default: { find: jest.fn().mockResolvedValue([]), prototype:{}, save: jest.fn().mockResolvedValue({ _id:'c1'}) },
+    }));
+    jest.mock('@/models/membership.model', () => ({
+      default: { save: jest.fn().mockResolvedValue({}) },
+    }));
+    const mod = await import('../pages/api/communities/index.js');
+    const handler = mod.default || mod;
+    request = buildRequest(handler);
+  });
+
+  it('GET public list returns 200', async () => {
+    await request.get('/api/communities').expect(200);
   });
 
   it('POST requires auth', async () => {
-    await supertest(server).post('/api/communities').send({}).expect(401);
+    await request.post('/api/communities').send({}).expect(401);
+  });
+
+  it('POST succeeds when authed', async () => {
+    await request
+      .post('/api/communities')
+      .set('Authorization', 'mock')
+      .send({ name: 'T', category: 'Tech' })
+      .expect(201);
   });
 });

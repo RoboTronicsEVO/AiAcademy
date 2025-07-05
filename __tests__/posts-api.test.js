@@ -1,16 +1,36 @@
-const http = require('http');
-const supertest = require('supertest');
-const handler = require('../pages/api/posts/index.js').default || require('../pages/api/posts/index.js');
+/* eslint-disable */
+const { buildRequest, setupCommonMocks } = require('../test/helpers.js');
 
-// Mock dependencies
-jest.mock('@/lib/mongodb', () => ({ connectToDatabase: jest.fn().mockResolvedValue(true) }));
-jest.mock('@/lib/middleware/auth', () => ({ withAuth: h => h }));
-jest.mock('@/lib/middleware/rateLimitRedis', () => ({ withRedisRateLimit: h => h }));
-
-const server = http.createServer((req, res) => handler(req, res));
+setupCommonMocks();
 
 describe('Posts API', () => {
-  it('requires auth', async () => {
-    await supertest(server).get('/api/posts').expect(401);
+  let request;
+  beforeAll(async () => {
+    jest.mock('@/models/membership.model', () => ({
+      default: { findOne: jest.fn().mockResolvedValue({}) },
+    }));
+    jest.mock('@/models/post.model', () => ({
+      default: {
+        find: jest.fn().mockResolvedValue([]),
+      },
+    }));
+    const mod = await import('../pages/api/posts/index.js');
+    const handler = mod.default || mod;
+    request = buildRequest(handler);
+  });
+
+  it('returns 401 when unauthenticated', async () => {
+    await request.get('/api/posts?communityId=c1').expect(401);
+  });
+
+  it('allows authenticated request', async () => {
+    await request.get('/api/posts?communityId=c1').set('Authorization', 'mock').expect(200);
+  });
+
+  it('hits rate limit after 2 requests', async () => {
+    const agent = request.set('Authorization', 'mock');
+    await agent.get('/api/posts?communityId=c1');
+    await agent.get('/api/posts?communityId=c1');
+    await agent.get('/api/posts?communityId=c1').expect(429);
   });
 });
