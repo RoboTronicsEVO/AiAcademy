@@ -4,6 +4,7 @@ import Post from '@/models/post.model';
 import mongoose from 'mongoose';
 import { withRateLimit } from '@/lib/middleware/rateLimit';
 import { withAuth } from '@/lib/middleware/auth';
+import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 
 async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -11,6 +12,9 @@ async function handler(req, res) {
         return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
     }
 
+    if (!req.session) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     await connectToDatabase();
 
     const { content, postId, parentId } = req.body;
@@ -49,4 +53,4 @@ async function handler(req, res) {
     }
 }
 
-export default withRateLimit(withAuth(handler));
+export default withRedisRateLimit(withAuth(handler));

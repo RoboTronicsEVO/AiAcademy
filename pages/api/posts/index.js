@@ -2,9 +2,13 @@ import { connectToDatabase } from '@/lib/mongodb';
 import Post from '@/models/post.model';
 import Membership from '@/models/membership.model';
 import { withRateLimit } from '@/lib/middleware/rateLimit';
+import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 import { withAuth } from '@/lib/middleware/auth';
 
 async function handler(req, res) {
+    if (!req.session) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     await connectToDatabase();
     const userId = req.session.user.id;
 
@@ -67,4 +71,4 @@ async function handler(req, res) {
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
 }
 
-export default withRateLimit(withAuth(handler));
+export default withRedisRateLimit(withAuth(handler));
