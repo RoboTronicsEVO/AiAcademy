@@ -31,6 +31,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ data: posts });
         } catch (error) {
+            console.error('Failed to fetch posts:', error);
             return res.status(500).json({ message: 'Internal Server Error' });
         }
     }

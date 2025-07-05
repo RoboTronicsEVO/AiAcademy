@@ -1,7 +1,6 @@
 import * as auth from '../lib/auth.js';
 
 const root = document.getElementById('root');
-const authStatusContainer = document.getElementById('auth-status-container');
 
 const routes = {
     '/': 'page.html',
@@ -89,7 +88,6 @@ async function handleProfilePage() {
         `;
     }
 }
-
 
 async function router() {
     const path = window.location.hash.substring(1) || '/';
