@@ -36,4 +36,11 @@ describe('Comments API', () => {
     await agent.post('/api/comments').send({ content:'hi', postId:'p1'});
     await agent.post('/api/comments').send({ content:'hi', postId:'p1'}).expect(429);
   });
+
+  it('201 nested reply', async () => {
+    await request.post('/api/comments')
+      .set('Authorization','mock')
+      .send({ content:'reply', postId:'p1', parentId:'cm1'})
+      .expect(201);
+  });
 });

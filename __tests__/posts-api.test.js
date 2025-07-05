@@ -33,4 +33,18 @@ describe('Posts API', () => {
     await agent.get('/api/posts?communityId=c1');
     await agent.get('/api/posts?communityId=c1').expect(429);
   });
+
+  it('POST creates post', async () => {
+    jest.mock('@/models/post.model', () => ({
+      default: { find: jest.fn(), populate: jest.fn(), save: jest.fn().mockResolvedValue({ _id:'p1'}), prototype:{}, },
+    }));
+    jest.mock('@/models/membership.model', () => ({
+      default: { findOne: jest.fn().mockResolvedValue({}) },
+    }));
+    await request
+      .post('/api/posts')
+      .set('Authorization','mock')
+      .send({ title:'T', content:'C', communityId:'c1'})
+      .expect(201);
+  });
 });

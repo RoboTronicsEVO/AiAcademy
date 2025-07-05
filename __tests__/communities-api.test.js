@@ -32,4 +32,22 @@ describe('Communities API', () => {
       .send({ name: 'T', category: 'Tech' })
       .expect(201);
   });
+
+  it('Join community', async () => {
+    jest.mock('@/models/community.model', () => ({ default: { findById: jest.fn().mockResolvedValue({ isPrivate:false}) } }));
+    jest.mock('@/models/membership.model', () => ({ default: { findOne: jest.fn().mockResolvedValue(null), prototype:{}, save: jest.fn().mockResolvedValue({}) } }));
+    const mod = await import('../pages/api/communities/join.js');
+    const handler = mod.default || mod;
+    const req = buildRequest(handler);
+    await req.post('/api/communities/join?id=c1').set('Authorization','mock').expect(200);
+  });
+
+  it('Leave community', async () => {
+    jest.mock('@/models/membership.model', () => ({ default: { findOne: jest.fn().mockResolvedValue({ _id:'m1', role:'member'}), findByIdAndDelete: jest.fn(), } }));
+    jest.mock('@/models/community.model', () => ({ default: { findByIdAndUpdate: jest.fn() } }));
+    const mod = await import('../pages/api/communities/leave.js');
+    const handler = mod.default || mod;
+    const req = buildRequest(handler);
+    await req.post('/api/communities/leave?id=c1').set('Authorization','mock').expect(200);
+  });
 });
