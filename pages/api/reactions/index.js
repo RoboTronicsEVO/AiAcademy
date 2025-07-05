@@ -1,22 +1,23 @@
-import { getSession } from 'next-auth/react';
 import { connectToDatabase } from '@/lib/mongodb';
 import Reaction from '@/models/reaction.model';
 import Post from '@/models/post.model';
 import Comment from '@/models/comment.model';
 import mongoose from 'mongoose';
+import { withAuth } from '@/lib/middleware/auth';
+import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 
 const TargetModels = {
     Post,
     Comment,
 };
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', ['POST']);
         return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
     }
 
-    const session = await getSession({ req });
+    const session = req.session;
     if (!session) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -66,3 +67,5 @@ export default async function handler(req, res) {
         dbSession.endSession();
     }
 }
+
+export default withRedisRateLimit(withAuth(handler));

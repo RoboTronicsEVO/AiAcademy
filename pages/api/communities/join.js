@@ -1,14 +1,15 @@
-import { getSession } from 'next-auth/react';
 import { connectToDatabase } from '@/lib/mongodb';
 import Community from '@/models/community.model';
 import Membership from '@/models/membership.model';
+import { withAuth } from '@/lib/middleware/auth';
+import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const session = await getSession({ req });
+    const session = req.session;
     if (!session) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -50,3 +51,5 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 }
+
+export default withRedisRateLimit(withAuth(handler));
