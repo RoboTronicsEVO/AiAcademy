@@ -1,16 +1,12 @@
-import { getSession } from 'next-auth/react';
 import { connectToDatabase } from '@/lib/mongodb';
 import Post from '@/models/post.model';
 import Membership from '@/models/membership.model';
+import { withRateLimit } from '@/lib/middleware/rateLimit';
+import { withAuth } from '@/lib/middleware/auth';
 
-export default async function handler(req, res) {
-    const session = await getSession({ req });
-    if (!session) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-    
+async function handler(req, res) {
     await connectToDatabase();
-    const userId = session.user.id;
+    const userId = req.session.user.id;
 
     if (req.method === 'GET') {
         try {
@@ -70,3 +66,5 @@ export default async function handler(req, res) {
     res.setHeader('Allow', ['GET', 'POST']);
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
 }
+
+export default withRateLimit(withAuth(handler));

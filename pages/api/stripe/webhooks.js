@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { buffer } from 'micro';
-import { memberships } from '../../../lib/db.js';
+import { connectToDatabase } from '@/lib/mongodb';
+import Membership from '@/models/membership.model';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2024-04-10',
@@ -42,24 +43,24 @@ const handler = async (req, res) => {
                 return res.status(400).send('Webhook Error: Missing required metadata.');
             }
             
-            const existingMembership = memberships.find(m => m.userId === userId && m.communityId === communityId);
+            await connectToDatabase();
+            const existingMembership = await Membership.findOne({ userId, communityId });
 
             if (!existingMembership) {
-                 const newMembership = {
-                    id: `mem_${Date.now()}`,
-                    userId: userId,
-                    communityId: communityId,
+                const newMembership = new Membership({
+                    userId,
+                    communityId,
                     role: 'member',
                     status: 'active',
                     stripeSubscriptionId: session.subscription,
                     stripeCustomerId: session.customer,
-                    joinedAt: new Date().toISOString()
-                };
-                memberships.push(newMembership);
+                });
+                await newMembership.save();
             } else {
                 existingMembership.status = 'active';
                 existingMembership.stripeSubscriptionId = session.subscription;
                 existingMembership.stripeCustomerId = session.customer;
+                await existingMembership.save();
             }
             break;
         
