@@ -43,4 +43,14 @@ describe('Comments API', () => {
       .send({ content:'reply', postId:'p1', parentId:'cm1'})
       .expect(201);
   });
+
+  it('400 parent belongs to diff post', async () => {
+    jest.mock('@/models/comment.model', () => ({ default: { findById: jest.fn().mockResolvedValue({ postId:'other' }) } }));
+    await request.post('/api/comments').set('Authorization','mock').send({ content:'x', postId:'p1', parentId:'cp' }).expect(400);
+  });
+
+  it('404 parent not found', async () => {
+    jest.mock('@/models/comment.model', () => ({ default: { findById: jest.fn().mockResolvedValue(null) } }));
+    await request.post('/api/comments').set('Authorization','mock').send({ content:'x', postId:'p1', parentId:'cp' }).expect(404);
+  });
 });

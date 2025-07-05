@@ -3,6 +3,7 @@ import Community from '@/models/community.model';
 import Membership from '@/models/membership.model';
 import { withAuth } from '@/lib/middleware/auth';
 import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
+import { withCsrf } from '@/lib/middleware/csrf';
 
 async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -52,4 +53,4 @@ async function handler(req, res) {
     }
 }
 
-export default withRedisRateLimit(withAuth(handler));
+export default withRedisRateLimit(withCsrf(withAuth(handler)));

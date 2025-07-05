@@ -47,4 +47,13 @@ describe('Posts API', () => {
       .send({ title:'T', content:'C', communityId:'c1'})
       .expect(201);
   });
+
+  it('400 missing fields', async () => {
+    await request.post('/api/posts').set('Authorization','mock').send({ title:'T'}).expect(400);
+  });
+
+  it('403 when not member', async () => {
+    jest.mock('@/models/membership.model', () => ({ default: { findOne: jest.fn().mockResolvedValue(null) } }));
+    await request.get('/api/posts?communityId=c1').set('Authorization','mock').expect(403);
+  });
 });

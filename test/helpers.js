@@ -3,7 +3,14 @@ const supertest = require('supertest');
 
 function buildRequest(handler) {
   const server = http.createServer((req, res) => handler(req, res));
-  return supertest(server);
+  const request = supertest(server);
+  // inject default csrf token for mutating requests
+  const verbs = ['post','put','patch','delete'];
+  verbs.forEach(v => {
+    const orig = request[v].bind(request);
+    request[v] = (...args) => orig(...args).set('x-csrf-token','testtoken');
+  });
+  return request;
 }
 
 function setupCommonMocks() {

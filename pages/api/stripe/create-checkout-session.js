@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { withAuth } from '@/lib/middleware/auth';
 import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
+import { withCsrf } from '@/lib/middleware/csrf';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10',
@@ -53,4 +54,4 @@ async function handler(req, res) {
     }
 }
 
-export default withRedisRateLimit(withAuth(handler));
+export default withRedisRateLimit(withCsrf(withAuth(handler)));

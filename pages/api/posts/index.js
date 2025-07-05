@@ -4,6 +4,7 @@ import Membership from '@/models/membership.model';
 import { withRateLimit } from '@/lib/middleware/rateLimit';
 import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
 import { withAuth } from '@/lib/middleware/auth';
+import { withCsrf } from '@/lib/middleware/csrf';
 
 async function handler(req, res) {
     if (!req.session) {
@@ -71,4 +72,4 @@ async function handler(req, res) {
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
 }
 
-export default withRedisRateLimit(withAuth(handler));
+export default withRedisRateLimit(withCsrf(withAuth(handler)));

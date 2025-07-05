@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '@/lib/mongodb';
 import User from '@/models/user.model';
 import { withRedisRateLimit } from '@/lib/middleware/rateLimitRedis';
+import { withCsrf } from '@/lib/middleware/csrf';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -28,4 +29,4 @@ async function handler(req, res) {
   }
 }
 
-export default withRedisRateLimit(handler);
+export default withRedisRateLimit(withCsrf(handler));
