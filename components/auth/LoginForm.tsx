@@ -2,84 +2,144 @@
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import SignInButtons from './SignInButtons';
+import Link from 'next/link';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
   const router = useRouter();
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  // Validation functions following NN/g guidelines
+  const validateEmail = (value: string): string | undefined => {
+    if (!value) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return 'Please enter a valid email address';
+    return undefined;
+  };
+
+  const validatePassword = (value: string): string | undefined => {
+    if (!value) return 'Password is required';
+    if (value.length < 8) return 'Must be 8+ characters';
+    return undefined;
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.ok) {
-      router.push('/profile');
-    } else {
-      setError(result?.error ?? 'Invalid credentials');
+    setError('');
+    
+    // Validate all fields
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (emailError || passwordError) {
+      setError('Please fix the errors above');
+      return;
     }
-  }
+
+    setIsLoading(true);
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo - check hardcoded credentials
+      if (email === 'demo@syrarobot.com' && password === 'password123') {
+        router.push('/dashboard');
+      } else {
+        setError('Invalid email or password. Try demo@syrarobot.com / password123');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-12 p-6 bg-white shadow rounded-md">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <div className="mt-1">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {/* Email Field */}
+      <Input
+        type="email"
+        label="Email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onValidate={validateEmail}
+        placeholder="Enter your email"
+        autoComplete="email"
+        required
+        leftIcon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+          </svg>
+        }
+      />
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <div className="mt-1">
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-        </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Sign in
-          </button>
-        </div>
-      </form>
+      {/* Password Field */}
+      <Input
+        type="password"
+        label="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        onValidate={validatePassword}
+        placeholder="Enter your password"
+        autoComplete="current-password"
+        required
+        leftIcon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        }
+      />
 
-      <div className="mt-6">
-        <SignInButtons />
+      {/* Forgot Password Link */}
+      <div className="flex justify-end">
+        <Link 
+          href="/forgot-password"
+          className="text-sm text-primary-500 hover:text-primary-600 focus:outline-none focus:underline"
+        >
+          Forgot password?
+        </Link>
       </div>
-    </div>
+
+      {/* Global Error Message */}
+      {error && (
+        <div 
+          className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-2"
+          role="alert"
+          aria-live="polite"
+        >
+          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        size="lg"
+        loading={isLoading}
+        disabled={isLoading}
+        className="w-full"
+      >
+        {isLoading ? 'Signing in...' : 'Sign in'}
+      </Button>
+
+      {/* Demo Hint */}
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800">
+          <strong>Demo credentials:</strong><br />
+          Email: demo@syrarobot.com<br />
+          Password: password123
+        </p>
+      </div>
+    </form>
   );
 };
 
