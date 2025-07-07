@@ -32,7 +32,9 @@
     "typescript": "^5.0.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/micro": "^9.0.3",
-    "@types/next-auth": "^4.0.8"
+    "@types/next-auth": "^4.0.8",
+    "@types/next": "^13.1.2",
+    "@types/mongoose": "^5.11.97"
   },
   "overrides": {},
   "engines": {

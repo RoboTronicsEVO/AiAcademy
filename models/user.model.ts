@@ -21,17 +21,17 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true },
 );
 
-UserSchema.pre<IUser>('save', async function (next: (err?: any) => void) {
-  const user = this as IUser & Document;
-  if (!user.isModified || !user.isModified('password')) return next();
+UserSchema.pre<IUser>('save', async function (this: IUser & Document, next) {
+  const nextFn = next as (err?: Error) => void;
+  const user = this;
+  if (!user.isModified || !user.isModified('password')) return nextFn();
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
-  next();
+  nextFn();
 });
 
-UserSchema.methods.comparePassword = function (candidate: string) {
-  const user = this as IUser;
-  return bcrypt.compare(candidate, user.password);
+UserSchema.methods.comparePassword = async function (this: IUser, candidate: string) {
+  return bcrypt.compare(candidate, this.password);
 };
 
 export default (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>('User', UserSchema);
