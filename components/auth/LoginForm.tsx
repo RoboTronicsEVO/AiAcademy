@@ -1,126 +1,284 @@
 /* eslint-disable react/jsx-no-bind */
 'use client';
 
-import React, { useState, FormEvent } from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { loginSchema, type LoginForm as LoginFormData } from '@/lib/validation';
+import { authToasts, formToasts } from '@/components/ui/Toast';
+import { ErrorLogger } from '@/lib/error-handler';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { validationRules } from '@/lib/validation';
 
-const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+interface LoginFormProps {
+  className?: string;
+  redirectTo?: string;
+}
+
+export default function LoginForm({ className, redirectTo = '/dashboard' }: LoginFormProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>('');
   const router = useRouter();
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+    setError,
+    clearErrors,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    clearErrors();
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo - check hardcoded credentials
-      if (email === 'demo@syrarobot.com' && password === 'password123') {
-        router.push('/dashboard');
-      } else {
-        setError('Invalid email or password. Try demo@syrarobot.com / password123');
+      const result = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        // Handle different types of authentication errors
+        if (result.error === 'CredentialsSignin') {
+          setError('email', { message: 'Invalid email or password' });
+          setError('password', { message: 'Invalid email or password' });
+          authToasts.loginError('Invalid email or password');
+        } else {
+          authToasts.loginError('An error occurred during login');
+        }
+
+        ErrorLogger.reportClientError(new Error(`Login failed: ${result.error}`), {
+          email: data.email,
+          errorType: 'authentication',
+        });
+      } else if (result?.ok) {
+        authToasts.loginSuccess();
+        router.push(redirectTo);
+        router.refresh();
       }
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+    } catch (error) {
+      console.error('Login error:', error);
+      authToasts.loginError('An unexpected error occurred');
+      
+      ErrorLogger.reportClientError(error as Error, {
+        email: data.email,
+        context: 'login_form_submission',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    
+    try {
+      const result = await signIn('credentials', {
+        email: 'demo@syrarobot.com',
+        password: 'password123',
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        authToasts.loginSuccess('Demo User');
+        router.push(redirectTo);
+      } else {
+        formToasts.saveError('Demo login failed');
+      }
+    } catch (error) {
+      formToasts.networkError();
+      ErrorLogger.reportClientError(error as Error, {
+        context: 'demo_login',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const getFieldError = (fieldName: keyof LoginFormData) => {
+    const error = errors[fieldName];
+    return error?.message;
+  };
+
+  const isFieldValid = (fieldName: keyof LoginFormData) => {
+    return touchedFields[fieldName] && !errors[fieldName];
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {/* Email Field */}
-      <Input
-        type="email"
-        label="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        validationRules={validationRules.email}
-        placeholder="Enter your email"
-        autoComplete="email"
-        required
-        data-testid="login-email"
-        leftIcon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-          </svg>
-        }
-      />
-
-      {/* Password Field */}
-      <Input
-        type="password"
-        label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        validationRules={{ required: true, minLength: 8 }}
-        placeholder="Enter your password"
-        autoComplete="current-password"
-        required
-        data-testid="login-password"
-        leftIcon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        }
-      />
-
-      {/* Forgot Password Link */}
-      <div className="flex justify-end">
-        <Link 
-          href="/forgot-password"
-          className="text-sm text-primary-500 hover:text-primary-600 focus:outline-none focus:underline"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      {/* Global Error Message */}
-      {error && (
-        <div 
-          className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-2"
-          role="alert"
-          aria-live="polite"
-        >
-          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          {error}
+    <div className={cn('space-y-6', className)}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {/* Email Field */}
+        <div className="space-y-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email Address
+          </label>
+          <div className="relative">
+            <Input
+              {...register('email')}
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="Enter your email"
+              disabled={isLoading}
+              className={cn(
+                'transition-colors',
+                errors.email && 'border-red-300 focus:border-red-500 focus:ring-red-500',
+                isFieldValid('email') && 'border-green-300 focus:border-green-500 focus:ring-green-500'
+              )}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+            />
+          </div>
+          {errors.email && (
+            <p
+              id="email-error"
+              className="text-sm text-red-600"
+              role="alert"
+            >
+              {getFieldError('email')}
+            </p>
+          )}
         </div>
-      )}
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        fullWidth
-        loading={isLoading}
-        disabled={isLoading}
-        data-testid="login-submit"
-      >
-        {isLoading ? 'Signing in...' : 'Sign in'}
-      </Button>
+        {/* Password Field */}
+        <div className="space-y-2">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <Input
+              {...register('password')}
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              disabled={isLoading}
+              className={cn(
+                'pr-10 transition-colors',
+                errors.password && 'border-red-300 focus:border-red-500 focus:ring-red-500',
+                isFieldValid('password') && 'border-green-300 focus:border-green-500 focus:ring-green-500'
+              )}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+              disabled={isLoading}
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+              <span className="sr-only">
+                {showPassword ? 'Hide password' : 'Show password'}
+              </span>
+            </button>
+          </div>
+          {errors.password && (
+            <p
+              id="password-error"
+              className="text-sm text-red-600"
+              role="alert"
+            >
+              {getFieldError('password')}
+            </p>
+          )}
+        </div>
 
-      {/* Demo Hint */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>Demo credentials:</strong><br />
-          Email: demo@syrarobot.com<br />
-          Password: password123
-        </p>
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          variant="primary"
+          fullWidth
+          disabled={isLoading}
+          className="relative"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            'Sign In'
+          )}
+        </Button>
+
+        {/* Demo Login Button */}
+        <Button
+          type="button"
+          variant="outline"
+          fullWidth
+          onClick={handleDemoLogin}
+          disabled={isLoading}
+          className="relative"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Loading Demo...
+            </>
+          ) : (
+            'Try Demo Account'
+          )}
+        </Button>
+      </form>
+
+      {/* Additional Links */}
+      <div className="text-center space-y-2">
+        <a
+          href="/forgot-password"
+          className="text-sm text-primary-600 hover:text-primary-500 transition-colors"
+        >
+          Forgot your password?
+        </a>
+        <div className="text-sm text-gray-600">
+          Don't have an account?{' '}
+          <a
+            href="/register"
+            className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
+          >
+            Sign up
+          </a>
+        </div>
       </div>
-    </form>
-  );
-};
 
-export default LoginForm;
+      {/* Demo Credentials Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <h4 className="text-sm font-medium text-blue-900 mb-2">
+          Demo Credentials
+        </h4>
+        <div className="text-sm text-blue-700 space-y-1">
+          <p><strong>Email:</strong> demo@syrarobot.com</p>
+          <p><strong>Password:</strong> password123</p>
+        </div>
+      </div>
+    </div>
+  );
+}
