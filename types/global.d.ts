@@ -1,5 +1,97 @@
 // Global type definitions for SyraRobot Academy
 
+// Package type declarations
+declare module 'lucide-react' {
+  import { FC, SVGProps } from 'react';
+  
+  interface IconProps extends SVGProps<SVGSVGElement> {
+    size?: number | string;
+    strokeWidth?: number | string;
+    color?: string;
+    className?: string;
+  }
+  
+  export const AlertTriangle: FC<IconProps>;
+  export const RefreshCw: FC<IconProps>;
+  export const Home: FC<IconProps>;
+  export const Bug: FC<IconProps>;
+  export const ChevronDown: FC<IconProps>;
+  export const ChevronUp: FC<IconProps>;
+  export const CheckCircle: FC<IconProps>;
+  export const XCircle: FC<IconProps>;
+  export const AlertCircle: FC<IconProps>;
+  export const Info: FC<IconProps>;
+  export const X: FC<IconProps>;
+  export const Eye: FC<IconProps>;
+  export const EyeOff: FC<IconProps>;
+  export const Loader2: FC<IconProps>;
+  export const User: FC<IconProps>;
+  export const Mail: FC<IconProps>;
+  export const Lock: FC<IconProps>;
+  export const Calendar: FC<IconProps>;
+  export const MapPin: FC<IconProps>;
+  export const Phone: FC<IconProps>;
+  export const Search: FC<IconProps>;
+  export const Filter: FC<IconProps>;
+  export const Plus: FC<IconProps>;
+  export const Edit: FC<IconProps>;
+  export const Trash: FC<IconProps>;
+  export const Settings: FC<IconProps>;
+  export const LogOut: FC<IconProps>;
+  export const Bell: FC<IconProps>;
+  export const Star: FC<IconProps>;
+  export const Heart: FC<IconProps>;
+  export const Share: FC<IconProps>;
+  export const Download: FC<IconProps>;
+  export const Upload: FC<IconProps>;
+  export const Save: FC<IconProps>;
+  export const Copy: FC<IconProps>;
+  export const Check: FC<IconProps>;
+  export const ArrowLeft: FC<IconProps>;
+  export const ArrowRight: FC<IconProps>;
+  export const ArrowUp: FC<IconProps>;
+  export const ArrowDown: FC<IconProps>;
+  export const ExternalLink: FC<IconProps>;
+  export const Menu: FC<IconProps>;
+  export const MoreHorizontal: FC<IconProps>;
+  export const MoreVertical: FC<IconProps>;
+}
+
+declare module 'clsx' {
+  export type ClassValue = 
+    | ClassArray
+    | ClassDictionary
+    | string
+    | number
+    | null
+    | boolean
+    | undefined;
+  
+  export type ClassDictionary = Record<string, any>;
+  export type ClassArray = ClassValue[];
+  
+  export function clsx(...inputs: ClassValue[]): string;
+  export default clsx;
+}
+
+declare module 'tailwind-merge' {
+  export function twMerge(...inputs: (string | undefined)[]): string;
+  export default twMerge;
+}
+
+// React Hook Form enhanced types
+declare module 'react-hook-form' {
+  export interface FieldError {
+    type?: string;
+    message?: string;
+    ref?: React.Ref<any>;
+  }
+  
+  export interface FieldErrors<TFieldValues = Record<string, any>> {
+    [key: string]: FieldError | FieldErrors<TFieldValues> | undefined;
+  }
+}
+
 // User types
 export interface User {
   id: string;
@@ -176,6 +268,44 @@ export interface FormField {
 export interface BaseComponentProps {
   className?: string;
   'data-testid'?: string;
+}
+
+// Enhanced error interfaces
+export interface AppError extends Error {
+  statusCode?: number;
+  code?: string;
+  context?: Record<string, any>;
+  isOperational?: boolean;
+}
+
+// Toast notification interfaces
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
+export interface ToastOptions {
+  title: string;
+  description?: string;
+  action?: ToastAction;
+  duration?: number;
+  variant?: 'success' | 'error' | 'warning' | 'info' | 'loading';
+}
+
+// Loading state interfaces
+export interface LoadingState {
+  isLoading: boolean;
+  error?: string | null;
+  progress?: number;
+}
+
+// Form state interfaces
+export interface FormState<T = any> {
+  data: T;
+  errors: Record<string, string>;
+  isSubmitting: boolean;
+  isValid: boolean;
+  isDirty: boolean;
 }
 
 // Event types for analytics

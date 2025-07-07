@@ -46,12 +46,9 @@ export async function POST(request: NextRequest) {
 }
 
 // Optional: GET endpoint to retrieve error statistics (for admin dashboard)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // This would typically require authentication and admin permissions
-    const { searchParams } = new URL(request.url);
-    const _limit = parseInt(searchParams.get('limit') || '50');
-    const _offset = parseInt(searchParams.get('offset') || '0');
 
     // Mock response - in a real app, you'd query your error storage
     const mockErrors = {

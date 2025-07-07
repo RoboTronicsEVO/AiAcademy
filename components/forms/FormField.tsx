@@ -61,6 +61,14 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
       setShowPassword(!showPassword);
     };
 
+    const getErrorMessage = (error: any): string => {
+      if (typeof error === 'string') return error;
+      if (error && typeof error === 'object' && 'message' in error) {
+        return error.message || 'Invalid input';
+      }
+      return 'Invalid input';
+    };
+
     const renderInput = (field: any) => {
       const inputProps = {
         ...field,
@@ -214,7 +222,7 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
                 role="alert"
               >
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {typeof error === 'string' ? error : error.message || 'Invalid input'}
+                {getErrorMessage(error)}
               </p>
             )}
           </div>
