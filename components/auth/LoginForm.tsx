@@ -1,19 +1,18 @@
 /* eslint-disable react/jsx-no-bind */
 'use client';
 
-import { useState } from 'react';
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SignInButtons from './SignInButtons';
 
-const LoginForm = () => {
+const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 

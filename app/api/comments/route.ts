@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 import { connectToDatabase } from '@/lib/mongodb';
 import Comment from '@/models/comment.model';
 import Post from '@/models/post.model';
 import mongoose from 'mongoose';
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -18,15 +18,11 @@ export async function POST(request) {
   const authorId = session.user.id;
 
   if (!content || !postId) {
-    return NextResponse.json(
-      { message: 'Content and postId are required.' },
-      { status: 400 },
-    );
+    return NextResponse.json({ message: 'Content and postId are required.' }, { status: 400 });
   }
 
   const dbSession = await mongoose.startSession();
   dbSession.startTransaction();
-
   try {
     const newComment = new Comment({ content, postId, authorId, parentId: parentId || null });
     const savedComment = await newComment.save({ session: dbSession });
