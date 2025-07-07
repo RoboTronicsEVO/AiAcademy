@@ -20,7 +20,8 @@
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
     "mongoose": "^8.0.0",
-    "micro": "^9.3.4"
+    "micro": "^9.3.4",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

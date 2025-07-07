@@ -1,16 +1,9 @@
 import Stripe from 'stripe';
+import { getSession } from 'next-auth/react';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10',
 });
-
-const getMockUserSession = async () => {
-    return {
-        user: {
-            id: '1'
-        }
-    };
-};
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -20,7 +13,7 @@ export default async function handler(req, res) {
 
     try {
         const { priceId, communityId } = req.body;
-        const session = await getMockUserSession();
+        const session = await getSession({ req });
 
         if (!session || !session.user) {
             return res.status(401).json({ error: 'Unauthorized' });

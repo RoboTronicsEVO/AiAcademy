@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import GitHubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { connectToDatabase } from '@/lib/mongodb';
-import { users } from '@/lib/db.js';
+import User from '@/models/user.model';
 
 export const authOptions = {
   providers: [
@@ -29,16 +29,14 @@ export const authOptions = {
         // Ensure database connection (future-proof for real users collection)
         await connectToDatabase();
 
-        // TODO: Replace with real User lookup & password hash comparison
-        const user = users.find(
-          (u) => u.email === credentials.email && u.password === credentials.password,
-        );
+        const user = await User.findOne({ email: credentials.email }).select('+password');
 
-        if (!user) {
-          return null;
-        }
+        if (!user) return null;
 
-        return { id: user.id, name: user.name, email: user.email, image: user.image };
+        const isMatch = await user.comparePassword(credentials.password);
+        if (!isMatch) return null;
+
+        return { id: user._id.toString(), name: user.name, email: user.email, image: user.image };
       },
     }),
   ],
