@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { connectToDatabase } from '@/lib/mongodb';
 import Comment from '@/models/comment.model';
 import Post from '@/models/post.model';
 import mongoose from 'mongoose';
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions as any) as any;
   if (!session) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   await connectToDatabase();
 
   const { content, postId, parentId } = await request.json();
-  const authorId = session.user.id;
+  const authorId = session.user?.id;
 
   if (!content || !postId) {
     return NextResponse.json({ message: 'Content and postId are required.' }, { status: 400 });

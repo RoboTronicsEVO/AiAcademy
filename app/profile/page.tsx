@@ -1,11 +1,14 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '../api/auth/[...nextauth]/route';
 import ProfileButton from '@/components/auth/ProfileButton';
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect('/signin');
+  const session = await getServerSession(authOptions as any) as any;
+  if (!session) {
+    redirect('/signin');
+    return; // satisfy TypeScript
+  }
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
