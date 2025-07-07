@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { validationRules } from '@/lib/validation';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,33 +15,10 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState<string>('');
   const router = useRouter();
 
-  // Validation functions following NN/g guidelines
-  const validateEmail = (value: string): string | undefined => {
-    if (!value) return 'Email is required';
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) return 'Please enter a valid email address';
-    return undefined;
-  };
-
-  const validatePassword = (value: string): string | undefined => {
-    if (!value) return 'Password is required';
-    if (value.length < 8) return 'Must be 8+ characters';
-    return undefined;
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     
-    // Validate all fields
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
-    
-    if (emailError || passwordError) {
-      setError('Please fix the errors above');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -68,10 +46,11 @@ const LoginForm: React.FC = () => {
         label="Email address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        onValidate={validateEmail}
+        validationRules={validationRules.email}
         placeholder="Enter your email"
         autoComplete="email"
         required
+        data-testid="login-email"
         leftIcon={
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
@@ -85,10 +64,11 @@ const LoginForm: React.FC = () => {
         label="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        onValidate={validatePassword}
+        validationRules={{ required: true, minLength: 8 }}
         placeholder="Enter your password"
         autoComplete="current-password"
         required
+        data-testid="login-password"
         leftIcon={
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -123,10 +103,10 @@ const LoginForm: React.FC = () => {
       {/* Submit Button */}
       <Button
         type="submit"
-        size="lg"
+        fullWidth
         loading={isLoading}
         disabled={isLoading}
-        className="w-full"
+        data-testid="login-submit"
       >
         {isLoading ? 'Signing in...' : 'Sign in'}
       </Button>

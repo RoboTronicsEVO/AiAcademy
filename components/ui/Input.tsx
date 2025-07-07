@@ -1,13 +1,16 @@
 import React, { forwardRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import type { BaseComponentProps, ValidationRule } from '@/types/global';
+import { validateField } from '@/lib/validation';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'>, BaseComponentProps {
   label?: string;
   error?: string;
   helperText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  onValidate?: (value: string) => string | undefined;
+  validationRules?: ValidationRule;
+  showValidationOnBlur?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
@@ -16,11 +19,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   helperText,
   leftIcon,
   rightIcon,
-  onValidate,
+  validationRules,
+  showValidationOnBlur = true,
   className,
   onBlur,
   onChange,
   id,
+  'data-testid': dataTestId,
   ...props
 }, ref) => {
   const [touched, setTouched] = useState(false);
@@ -30,12 +35,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   const errorId = `${inputId}-error`;
   const helperId = `${inputId}-helper`;
   
-  const displayError = touched ? (error || validationError) : undefined;
+  const displayError = (touched && showValidationOnBlur) ? (error || validationError) : error;
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
-    if (onValidate) {
-      const validationResult = onValidate(e.target.value);
+    if (validationRules) {
+      const validationResult = validateField(e.target.value, validationRules);
       setValidationError(validationResult);
     }
     onBlur?.(e);
@@ -43,8 +48,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only validate on change if already touched (NN/g guidelines)
-    if (touched && onValidate) {
-      const validationResult = onValidate(e.target.value);
+    if (touched && showValidationOnBlur && validationRules) {
+      const validationResult = validateField(e.target.value, validationRules);
       setValidationError(validationResult);
     }
     onChange?.(e);
@@ -96,6 +101,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
             displayError && errorId,
             helperText && helperId
           )}
+          data-testid={dataTestId}
           {...props}
         />
         
