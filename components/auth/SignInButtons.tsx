@@ -1,10 +1,9 @@
 'use client';
-// @ts-nocheck
 
 import React from 'react';
 import { signIn } from 'next-auth/react';
 
-const SignInButtons = () => {
+const SignInButtons: React.FC = () => {
   return (
     <div className="space-y-2">
       <button

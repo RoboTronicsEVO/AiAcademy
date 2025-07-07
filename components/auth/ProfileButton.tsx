@@ -1,10 +1,9 @@
 'use client';
-// @ts-nocheck
 
 import React from 'react';
 import { signOut, useSession } from 'next-auth/react';
 
-const ProfileButton = () => {
+const ProfileButton: React.FC = () => {
   const { data: session, status } = useSession();
 
   if (status === 'loading') return null;
