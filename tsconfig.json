@@ -22,8 +22,11 @@
     "moduleDetection": "force",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
     "plugins": [
       {
         "name": "next"
@@ -37,13 +40,15 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": false
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "types/**/*.ts",
     "postcss.config.js",
     "tailwind.config.ts"
   ],
