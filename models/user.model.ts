@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema, CallbackWithoutResultAndOptionalError } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -21,8 +21,8 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true },
 );
 
-UserSchema.pre<IUser>('save', async function (this: IUser & Document, next) {
-  const nextFn = next as (err?: Error) => void;
+UserSchema.pre<IUser>('save', async function (this: IUser & Document, next: CallbackWithoutResultAndOptionalError) {
+  const nextFn = next;
   const user = this;
   if (!user.isModified || !user.isModified('password')) return nextFn();
   const salt = await bcrypt.genSalt(10);
