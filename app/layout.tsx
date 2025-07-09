@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
+import Navigation from '@/components/shared/Navigation';
 
 export const metadata: Metadata = {
   title: 'SyraRobot Academy',
@@ -17,7 +18,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased bg-gray-50 text-gray-900">
         <ErrorBoundary>
-          {children}
+          <Navigation />
+          <main className="min-h-screen">
+            {children}
+          </main>
           <ToastProvider />
         </ErrorBoundary>
       </body>
