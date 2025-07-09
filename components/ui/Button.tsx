@@ -10,9 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   /** Pre-defined size */
   size?: ButtonSize;
-  /** Display a loading spinner and disable button (preferred) */
-  isLoading?: boolean;
-  /** Alias for isLoading for convenience */
+  /** Display a loading spinner and disable button */
   loading?: boolean;
   /** Icon element rendered before the children */
   startIcon?: ReactNode;
@@ -71,8 +69,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       variant = 'primary',
       size = 'md',
-      isLoading: isLoadingProp,
-      loading,
+      loading = false,
       
       // now rest
       startIcon,
@@ -84,7 +81,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const isLoading = isLoadingProp ?? loading ?? false;
+    const isLoading = loading;
     const isDisabled = disabled || isLoading;
 
     const classes = cn(
