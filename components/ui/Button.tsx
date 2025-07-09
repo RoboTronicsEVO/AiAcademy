@@ -1,125 +1,121 @@
-import React from 'react';
+import * as React from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import type { BaseComponentProps } from '@/types/global';
 
-interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className'>, BaseComponentProps {
-  variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  loading?: boolean;
-  children: React.ReactNode;
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Visual variant of the button */
+  variant?: ButtonVariant;
+  /** Pre-defined size */
+  size?: ButtonSize;
+  /** Display a loading spinner and disable button */
+  isLoading?: boolean;
+  /** Icon element rendered before the children */
+  startIcon?: ReactNode;
+  /** Icon element rendered after the children */
+  endIcon?: ReactNode;
+  /** Make the button take the full width of its container */
   fullWidth?: boolean;
-  startIcon?: React.ReactNode;
-  endIcon?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  fullWidth = false,
-  startIcon,
-  endIcon,
-  className,
-  disabled,
-  children,
-  'data-testid': dataTestId,
-  ...props
-}) => {
-  const baseClasses = [
-    'inline-flex items-center justify-center gap-2',
-    'font-medium rounded-xl transition-all duration-200',
-    'focus:outline-none focus:ring-3 focus:ring-primary-500/20',
-    'disabled:opacity-50 disabled:cursor-not-allowed',
-    'min-w-touch min-h-touch', // WCAG touch target
-    'active:scale-95',
-    fullWidth && 'w-full',
-  ];
-
-  const variants = {
-    primary: [
-      'bg-primary-500 text-white',
-      'hover:bg-primary-600 active:bg-primary-700',
-      'shadow-md hover:shadow-lg',
-    ],
-    secondary: [
-      'bg-neutral-100 text-neutral-900',
-      'hover:bg-neutral-200 active:bg-neutral-300',
-      'border border-neutral-200',
-    ],
-    accent: [
-      'bg-accent-500 text-white text-lg', // ≥18px for contrast
-      'hover:bg-accent-600 active:bg-red-700',
-      'shadow-md hover:shadow-lg',
-    ],
-    outline: [
-      'bg-transparent text-primary-500',
-      'border-2 border-primary-500',
-      'hover:bg-primary-50 active:bg-primary-100',
-    ],
-    ghost: [
-      'bg-transparent text-primary-500',
-      'hover:bg-primary-50 active:bg-primary-100',
-    ],
-  };
-
-  const sizes = {
-    sm: 'px-3 py-2 text-sm h-9',
-    md: 'px-4 py-2.5 text-base h-11',
-    lg: 'px-6 py-3 text-lg h-12',
-  };
-
-  const classes = cn(
-    baseClasses,
-    variants[variant],
-    sizes[size],
-    className
-  );
-
-  return (
-    <button
-      className={classes}
-      disabled={disabled || loading}
-      aria-busy={loading}
-      data-testid={dataTestId}
-      {...props}
-    >
-      {(loading || startIcon) && (
-        <span className="flex-shrink-0">
-          {loading ? (
-            <svg
-              className="animate-spin h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-          ) : (
-            startIcon
-          )}
-        </span>
-      )}
-      {children}
-      {endIcon && !loading && (
-        <span className="flex-shrink-0">
-          {endIcon}
-        </span>
-      )}
-    </button>
-  );
+const variantClasses: Record<ButtonVariant, string> = {
+  primary:
+    'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-600',
+  secondary:
+    'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-600',
+  outline:
+    'border border-neutral-300 text-neutral-700 hover:bg-neutral-50 focus-visible:ring-primary-600',
+  ghost:
+    'text-neutral-700 hover:bg-neutral-100 focus-visible:ring-primary-600',
 };
 
-export default Button;
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-10 px-4 text-sm',
+  lg: 'h-11 px-5 text-base',
+};
+
+const Spinner = () => (
+  <svg
+    className="animate-spin h-4 w-4 text-current"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+    />
+  </svg>
+);
+
+/**
+ * Reusable button component following SyraRobot design system.
+ */
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      children,
+      variant = 'primary',
+      size = 'md',
+      isLoading = false,
+      startIcon,
+      endIcon,
+      fullWidth = false,
+      disabled,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
+    const isDisabled = disabled || isLoading;
+
+    const classes = cn(
+      'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none',
+      variantClasses[variant],
+      sizeClasses[size],
+      fullWidth && 'w-full',
+      className,
+    );
+
+    return (
+      <button
+        ref={ref}
+        className={classes}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+        aria-busy={isLoading}
+        {...props}
+      >
+        {/* Start icon or spinner */}
+        {isLoading ? (
+          <span className="mr-2 -ml-1">
+            <Spinner />
+          </span>
+        ) : (
+          startIcon && <span className="mr-2 -ml-1">{startIcon}</span>
+        )}
+
+        <span>{children}</span>
+
+        {/* End icon */}
+        {!isLoading && endIcon && <span className="ml-2 -mr-1">{endIcon}</span>}
+      </button>
+    );
+  },
+);
+
+Button.displayName = 'Button';
+
+export { Button };

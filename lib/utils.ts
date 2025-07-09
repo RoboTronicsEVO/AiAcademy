@@ -1,6 +1,14 @@
-import { type ClassValue, clsx } from 'clsx';
+import { clsx, ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+/**
+ * Combine tailwind classes conditionally with support for tailwind-merge to avoid duplicates.
+ *
+ * Example:
+ * ```ts
+ * const classes = cn('px-4', isActive && 'bg-primary-500');
+ * ```
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
