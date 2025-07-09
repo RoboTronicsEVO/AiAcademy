@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { Slot } from '@radix-ui/react-slot';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -19,8 +18,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   endIcon?: ReactNode;
   /** Make the button take the full width of its container */
   fullWidth?: boolean;
-  /** Render as child (useful for Link/button polymorphism) */
-  asChild?: boolean;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -73,12 +70,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'primary',
       size = 'md',
       loading = false,
-      
-      // now rest
       startIcon,
       endIcon,
       fullWidth = false,
-      asChild = false,
       disabled,
       className,
       ...props
@@ -96,13 +90,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
     );
 
-    const Comp = asChild ? Slot : 'button';
-
     return (
-      <Comp
+      <button
         ref={ref}
         className={classes}
-        disabled={!asChild ? isDisabled : undefined}
+        disabled={isDisabled}
         aria-disabled={isDisabled}
         aria-busy={isLoading}
         {...props}
@@ -120,7 +112,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         {/* End icon */}
         {!isLoading && endIcon && <span className="ml-2 -mr-1">{endIcon}</span>}
-      </Comp>
+      </button>
     );
   },
 );
